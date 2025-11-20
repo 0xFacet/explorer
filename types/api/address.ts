@@ -1,7 +1,9 @@
 import type { Transaction } from 'types/api/transaction';
 
-import type { UserTags, AddressImplementation } from './addressParams';
+import type { UserTags, AddressImplementation, AddressParam, AddressFilecoinParams } from './addressParams';
 import type { Block } from './block';
+import type { SmartContractCreationStatus, SmartContractProxyType } from './contract';
+import type { CeloEpochRewardsType } from './epochs';
 import type { InternalTransaction } from './internalTransaction';
 import type { MudWorldSchema, MudWorldTable } from './mudWorlds';
 import type { NFTTokenType, TokenInfo, TokenInstance, TokenType } from './token';
@@ -11,12 +13,15 @@ export interface Address extends UserTags {
   block_number_balance_updated_at: number | null;
   coin_balance: string | null;
   creator_address_hash: string | null;
-  creation_tx_hash: string | null;
+  creator_filecoin_robust_address?: string | null;
+  creation_transaction_hash: string | null;
+  creation_status: SmartContractCreationStatus | null;
   exchange_rate: string | null;
   ens_domain_name: string | null;
+  filecoin?: AddressFilecoinParams;
+  zilliqa?: AddressZilliqaParams;
   // TODO: if we are happy with tabs-counters method, should we delete has_something fields?
   has_beacon_chain_withdrawals?: boolean;
-  has_decompiled_code: boolean;
   has_logs: boolean;
   has_token_transfers: boolean;
   has_tokens: boolean;
@@ -28,6 +33,11 @@ export interface Address extends UserTags {
   name: string | null;
   token: TokenInfo | null;
   watchlist_address_id: number | null;
+  proxy_type?: SmartContractProxyType | null;
+}
+
+export interface AddressZilliqaParams {
+  is_scilla_contract: boolean;
 }
 
 export interface AddressCounters {
@@ -48,13 +58,13 @@ export type AddressNFT = TokenInstance & {
   token: TokenInfo;
   token_type: Omit<TokenType, 'ERC-20'>;
   value: string;
-}
+};
 
 export type AddressCollection = {
   token: TokenInfo;
   amount: string;
   token_instances: Array<Omit<AddressNFT, 'token'>>;
-}
+};
 
 export interface AddressTokensResponse {
   items: Array<AddressTokenBalance>;
@@ -105,7 +115,7 @@ export type AddressFromToFilter = typeof AddressFromToFilterValues[number] | und
 
 export type AddressTxsFilters = {
   filter: AddressFromToFilter;
-}
+};
 
 export interface AddressTokenTransferResponse {
   items: Array<TokenTransfer>;
@@ -116,15 +126,15 @@ export type AddressTokenTransferFilters = {
   filter?: AddressFromToFilter;
   type?: Array<TokenType>;
   token?: string;
-}
+};
 
 export type AddressTokensFilter = {
   type: TokenType;
-}
+};
 
 export type AddressNFTTokensFilter = {
   type: Array<NFTTokenType> | undefined;
-}
+};
 
 export interface AddressCoinBalanceHistoryItem {
   block_number: number;
@@ -141,12 +151,6 @@ export interface AddressCoinBalanceHistoryResponse {
     items_count: number;
   } | null;
 }
-
-// remove after api release
-export type AddressCoinBalanceHistoryChartOld = Array<{
-  date: string;
-  value: string;
-}>
 
 export type AddressCoinBalanceHistoryChart = {
   items: Array<{
@@ -179,7 +183,7 @@ export type AddressWithdrawalsResponse = {
     index: number;
     items_count: number;
   };
-}
+};
 
 export type AddressWithdrawalsItem = {
   amount: string;
@@ -187,23 +191,25 @@ export type AddressWithdrawalsItem = {
   index: number;
   timestamp: string;
   validator_index: number;
-}
+};
 
 export type AddressTabsCounters = {
-  internal_txs_count: number | null;
+  internal_transactions_count: number | null;
   logs_count: number | null;
   token_balances_count: number | null;
   token_transfers_count: number | null;
   transactions_count: number | null;
   validations_count: number | null;
   withdrawals_count: number | null;
-}
+  beacon_deposits_count: number | null;
+  celo_election_rewards_count?: number | null;
+};
 
 // MUD framework
 export type AddressMudTableItem = {
   schema: MudWorldSchema;
   table: MudWorldTable;
-}
+};
 
 export type AddressMudTables = {
   items: Array<AddressMudTableItem>;
@@ -211,11 +217,11 @@ export type AddressMudTables = {
     items_count: number;
     table_id: string;
   };
-}
+};
 
 export type AddressMudTablesFilter = {
   q?: string;
-}
+};
 
 export type AddressMudRecords = {
   items: Array<AddressMudRecordsItem>;
@@ -227,27 +233,54 @@ export type AddressMudRecords = {
     key1: string;
     key_bytes: string;
   };
-}
+};
 
 export type AddressMudRecordsItem = {
   decoded: Record<string, string | Array<string>>;
   id: string;
   is_deleted: boolean;
   timestamp: string;
-}
+};
 
 export type AddressMudRecordsFilter = {
   filter_key0?: string;
   filter_key1?: string;
-}
+};
 
 export type AddressMudRecordsSorting = {
   sort: 'key0' | 'key1';
   order: 'asc' | 'desc' | undefined;
-}
+};
 
 export type AddressMudRecord = {
   record: AddressMudRecordsItem;
   schema: MudWorldSchema;
   table: MudWorldTable;
-}
+};
+
+export type AddressEpochRewardsResponse = {
+  items: Array<AddressEpochRewardsItem>;
+  next_page_params: {
+    amount: string;
+    associated_account_address_hash: string;
+    epoch_number: number;
+    items_count: number;
+    type: CeloEpochRewardsType;
+  } | null;
+};
+
+export type AddressEpochRewardsItem = {
+  type: CeloEpochRewardsType;
+  token: TokenInfo;
+  amount: string;
+  block_timestamp: string;
+  account: AddressParam;
+  epoch_number: number;
+  associated_account: AddressParam;
+};
+
+export type AddressXStarResponse = {
+  data: {
+    level: string | null;
+  };
+};

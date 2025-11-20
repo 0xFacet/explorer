@@ -1,50 +1,81 @@
-import { defaultWagmiConfig } from '@web3modal/wagmi/react/config';
-import { http } from 'viem';
-import { createConfig, type CreateConfigParameters } from 'wagmi';
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
+import type { AppKitNetwork } from '@reown/appkit/networks';
+import type { Chain, Transport } from 'viem';
+import { fallback, http } from 'viem';
+import { createConfig } from 'wagmi';
 
-import config from 'configs/app';
-import currentChain from 'lib/web3/currentChain';
+import appConfig from 'configs/app';
+import multichainConfig from 'configs/multichain';
+import { currentChain, parentChain, clusterChains } from 'lib/web3/chains';
 
-const feature = config.features.blockchainInteraction;
-const l1Chain = config.l1Chain;
+const feature = appConfig.features.blockchainInteraction;
 
-const wagmiConfig = (() => {
-  const chains: CreateConfigParameters['chains'] = l1Chain ? [ currentChain, l1Chain ] : [ currentChain ];
+const chains = [ currentChain, parentChain, ...(clusterChains ?? []) ].filter(Boolean);
+
+const getChainTransportFromConfig = (config: typeof appConfig, readOnly?: boolean): Record<string, Transport> => {
+  if (!config.chain.id) {
+    return {};
+  }
+
+  return {
+    [config.chain.id]: fallback(
+      config.chain.rpcUrls
+        .concat(readOnly ? `${ config.apis.general.endpoint }/api/eth-rpc` : '')
+        .filter(Boolean)
+        .map((url) => http(url, { batch: { wait: 100 } })),
+    ),
+  };
+};
+
+const reduceClusterChainsToTransportConfig = (readOnly: boolean): Record<string, Transport> => {
+  const config = multichainConfig();
+
+  if (!config) {
+    return {};
+  }
+
+  return config.chains
+    .map(({ config }) => getChainTransportFromConfig(config, readOnly))
+    .reduce((result, item) => {
+      Object.entries(item).map(([ id, transport ]) => {
+        result[id] = transport;
+      });
+      return result;
+    }, {} as Record<string, Transport>);
+};
+
+const wagmi = (() => {
 
   if (!feature.isEnabled) {
     const wagmiConfig = createConfig({
-      chains,
+      chains: chains as [Chain, ...Array<Chain>],
       transports: {
-        [currentChain.id]: http(config.chain.rpcUrl || `${ config.api.endpoint }/api/eth-rpc`),
-        ...(l1Chain ? { [l1Chain.id]: http() } : {}),
+        ...getChainTransportFromConfig(appConfig, true),
+        ...(parentChain ? { [parentChain.id]: http(parentChain.rpcUrls.default.http[0]) } : {}),
+        ...reduceClusterChainsToTransportConfig(true),
       },
       ssr: true,
       batch: { multicall: { wait: 100 } },
     });
 
-    return wagmiConfig;
+    return { config: wagmiConfig, adapter: null };
   }
 
-  const wagmiConfig = defaultWagmiConfig({
-    chains,
+  const wagmiAdapter = new WagmiAdapter({
+    networks: chains as Array<AppKitNetwork>,
     multiInjectedProviderDiscovery: true,
     transports: {
-      [currentChain.id]: http(),
-      ...(l1Chain ? { [l1Chain.id]: http() } : {}),
+      ...getChainTransportFromConfig(appConfig, false),
+      ...(parentChain ? { [parentChain.id]: http() } : {}),
+      ...reduceClusterChainsToTransportConfig(false),
     },
     projectId: feature.walletConnect.projectId,
-    metadata: {
-      name: `${ config.chain.name } explorer`,
-      description: `${ config.chain.name } explorer`,
-      url: config.app.baseUrl,
-      icons: [ config.UI.navigation.icon.default ].filter(Boolean),
-    },
-    enableEmail: true,
     ssr: true,
     batch: { multicall: { wait: 100 } },
+    syncConnectedChain: false,
   });
 
-  return wagmiConfig;
+  return { config: wagmiAdapter.wagmiConfig, adapter: wagmiAdapter };
 })();
 
-export default wagmiConfig;
+export default wagmi;

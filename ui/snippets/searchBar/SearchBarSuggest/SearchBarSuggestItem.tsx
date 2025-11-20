@@ -1,8 +1,7 @@
-import type { LinkProps as NextLinkProps } from 'next/link';
-import NextLink from 'next/link';
 import React from 'react';
 
 import type { SearchResultItem } from 'types/client/search';
+import type { AddressFormat } from 'types/views/address';
 
 import { route } from 'nextjs-routes';
 
@@ -12,6 +11,7 @@ import SearchBarSuggestBlock from './SearchBarSuggestBlock';
 import SearchBarSuggestDomain from './SearchBarSuggestDomain';
 import SearchBarSuggestItemLink from './SearchBarSuggestItemLink';
 import SearchBarSuggestLabel from './SearchBarSuggestLabel';
+import SearchBarSuggestTacOperation from './SearchBarSuggestTacOperation';
 import SearchBarSuggestToken from './SearchBarSuggestToken';
 import SearchBarSuggestTx from './SearchBarSuggestTx';
 import SearchBarSuggestUserOp from './SearchBarSuggestUserOp';
@@ -21,22 +21,24 @@ interface Props {
   isMobile: boolean | undefined;
   searchTerm: string;
   onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+  addressFormat?: AddressFormat;
 }
 
-const SearchBarSuggestItem = ({ data, isMobile, searchTerm, onClick }: Props) => {
+const SearchBarSuggestItem = ({ data, isMobile, searchTerm, onClick, addressFormat }: Props) => {
 
   const url = (() => {
     switch (data.type) {
       case 'token': {
-        return route({ pathname: '/token/[hash]', query: { hash: data.address } });
+        return route({ pathname: '/token/[hash]', query: { hash: data.address_hash } });
       }
       case 'contract':
       case 'address':
-      case 'label': {
-        return route({ pathname: '/address/[hash]', query: { hash: data.address } });
+      case 'label':
+      case 'metadata_tag': {
+        return route({ pathname: '/address/[hash]', query: { hash: data.address_hash } });
       }
       case 'transaction': {
-        return route({ pathname: '/tx/[hash]', query: { hash: data.tx_hash } });
+        return route({ pathname: '/tx/[hash]', query: { hash: data.transaction_hash } });
       }
       case 'block': {
         const isFutureBlock = data.timestamp === undefined;
@@ -53,7 +55,10 @@ const SearchBarSuggestItem = ({ data, isMobile, searchTerm, onClick }: Props) =>
         return route({ pathname: '/blobs/[hash]', query: { hash: data.blob_hash } });
       }
       case 'ens_domain': {
-        return route({ pathname: '/address/[hash]', query: { hash: data.address } });
+        return route({ pathname: '/address/[hash]', query: { hash: data.address_hash } });
+      }
+      case 'tac_operation': {
+        return route({ pathname: '/operation/[id]', query: { id: data.tac_operation.operation_id } });
       }
     }
   })();
@@ -61,15 +66,36 @@ const SearchBarSuggestItem = ({ data, isMobile, searchTerm, onClick }: Props) =>
   const content = (() => {
     switch (data.type) {
       case 'token': {
-        return <SearchBarSuggestToken data={ data } searchTerm={ searchTerm } isMobile={ isMobile }/>;
+        return (
+          <SearchBarSuggestToken
+            data={ data }
+            searchTerm={ searchTerm }
+            isMobile={ isMobile }
+            addressFormat={ addressFormat }
+          />
+        );
       }
+      case 'metadata_tag':
       case 'contract':
       case 'address': {
-        return <SearchBarSuggestAddress data={ data } searchTerm={ searchTerm } isMobile={ isMobile }/>;
+        return (
+          <SearchBarSuggestAddress
+            data={ data }
+            searchTerm={ searchTerm }
+            isMobile={ isMobile }
+            addressFormat={ addressFormat }
+          />
+        );
       }
       case 'label': {
-        return <SearchBarSuggestLabel data={ data } searchTerm={ searchTerm } isMobile={ isMobile }/>;
-
+        return (
+          <SearchBarSuggestLabel
+            data={ data }
+            searchTerm={ searchTerm }
+            isMobile={ isMobile }
+            addressFormat={ addressFormat }
+          />
+        );
       }
       case 'block': {
         return <SearchBarSuggestBlock data={ data } searchTerm={ searchTerm } isMobile={ isMobile }/>;
@@ -84,17 +110,18 @@ const SearchBarSuggestItem = ({ data, isMobile, searchTerm, onClick }: Props) =>
         return <SearchBarSuggestBlob data={ data } searchTerm={ searchTerm }/>;
       }
       case 'ens_domain': {
-        return <SearchBarSuggestDomain data={ data } searchTerm={ searchTerm } isMobile={ isMobile }/>;
+        return <SearchBarSuggestDomain data={ data } searchTerm={ searchTerm } isMobile={ isMobile } addressFormat={ addressFormat }/>;
+      }
+      case 'tac_operation': {
+        return <SearchBarSuggestTacOperation data={ data } searchTerm={ searchTerm } isMobile={ isMobile } addressFormat={ addressFormat }/>;
       }
     }
   })();
 
   return (
-    <NextLink href={ url as NextLinkProps['href'] } passHref legacyBehavior>
-      <SearchBarSuggestItemLink onClick={ onClick }>
-        { content }
-      </SearchBarSuggestItemLink>
-    </NextLink>
+    <SearchBarSuggestItemLink onClick={ onClick } href={ url }>
+      { content }
+    </SearchBarSuggestItemLink>
   );
 };
 

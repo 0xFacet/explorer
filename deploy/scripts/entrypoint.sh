@@ -39,9 +39,14 @@ export_envs_from_preset
 ./download_assets.sh ./public/assets/configs
 
 # Check run-time ENVs values
-./validate_envs.sh
-if [ $? -ne 0 ]; then
-  exit 1
+if [ "$SKIP_ENVS_VALIDATION" != "true" ]; then
+  ./validate_envs.sh
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+else
+  echo "😱 Skipping ENVs validation."
+  echo
 fi
 
 # Generate favicons bundle
@@ -53,8 +58,17 @@ else
 fi
 echo
 
+# Generate OG image
+node --no-warnings ./og_image_generator.js
+
 # Create envs.js file with run-time environment variables for the client app
 ./make_envs_script.sh
+
+# Generate multichain config
+node ./deploy/tools/multichain-config-generator/dist/index.js
+
+# Generate sitemap.xml and robots.txt files
+./sitemap_generator.sh
 
 # Print list of enabled features
 node ./feature-reporter.js

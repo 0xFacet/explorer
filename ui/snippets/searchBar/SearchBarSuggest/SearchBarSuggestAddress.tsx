@@ -1,28 +1,28 @@
-import { chakra, Box, Text, Flex } from '@chakra-ui/react';
+import { chakra, Box, Text, Flex, Grid } from '@chakra-ui/react';
 import React from 'react';
 
-import type { SearchResultAddressOrContract } from 'types/api/search';
+import type { ItemsProps } from './types';
+import type { SearchResultAddressOrContract, SearchResultMetadataTag } from 'types/api/search';
 
+import { toBech32Address } from 'lib/address/bech32';
 import dayjs from 'lib/date/dayjs';
 import highlightText from 'lib/highlightText';
-import { ADDRESS_REGEXP } from 'lib/validations/address';
+import { ADDRESS_REGEXP } from 'toolkit/components/forms/validators/address';
+import SearchResultEntityTag from 'ui/searchResults/SearchResultEntityTag';
 import ContractCertifiedLabel from 'ui/shared/ContractCertifiedLabel';
 import * as AddressEntity from 'ui/shared/entities/address/AddressEntity';
 import HashStringShortenDynamic from 'ui/shared/HashStringShortenDynamic';
 
-interface Props {
-  data: SearchResultAddressOrContract;
-  isMobile: boolean | undefined;
-  searchTerm: string;
-}
+type Props = ItemsProps<SearchResultAddressOrContract | SearchResultMetadataTag>;
 
-const SearchBarSuggestAddress = ({ data, isMobile, searchTerm }: Props) => {
+const SearchBarSuggestAddress = ({ data, isMobile, searchTerm, addressFormat }: Props) => {
   const shouldHighlightHash = ADDRESS_REGEXP.test(searchTerm);
+  const hash = data.filecoin_robust_address || (addressFormat === 'bech32' ? toBech32Address(data.address_hash) : data.address_hash);
 
   const icon = (
     <AddressEntity.Icon
       address={{
-        hash: data.address,
+        hash: data.address_hash,
         is_contract: data.type === 'contract',
         name: '',
         is_verified: data.is_smart_contract_verified,
@@ -37,7 +37,7 @@ const SearchBarSuggestAddress = ({ data, isMobile, searchTerm }: Props) => {
   const nameEl = addressName && (
     <Flex alignItems="center">
       <Text
-        variant="secondary"
+        color="text.secondary"
         overflow="hidden"
         whiteSpace="nowrap"
         textOverflow="ellipsis"
@@ -49,10 +49,13 @@ const SearchBarSuggestAddress = ({ data, isMobile, searchTerm }: Props) => {
             <span>{ expiresText }</span>
         ) }
       </Text>
-      { data.certified && <ContractCertifiedLabel boxSize={ 5 } iconSize={ 5 } ml={ 1 }/> }
+      { data.certified && <ContractCertifiedLabel boxSize={ 4 } iconSize={ 4 } ml={ 1 } flexShrink={ 0 }/> }
     </Flex>
   );
-  const addressEl = <HashStringShortenDynamic hash={ data.address } isTooltipDisabled/>;
+  const tagEl = data.type === 'metadata_tag' ? (
+    <SearchResultEntityTag metadata={ data.metadata } searchTerm={ searchTerm } ml={{ base: 0, lg: 'auto' }}/>
+  ) : null;
+  const addressEl = <HashStringShortenDynamic hash={ hash } noTooltip/>;
 
   if (isMobile) {
     return (
@@ -69,14 +72,17 @@ const SearchBarSuggestAddress = ({ data, isMobile, searchTerm }: Props) => {
             { addressEl }
           </Box>
         </Flex>
-        { nameEl }
+        <Flex alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={ 2 }>
+          { nameEl }
+          { tagEl }
+        </Flex>
       </>
     );
   }
 
   return (
-    <Flex alignItems="center">
-      <Flex alignItems="center" w="450px" mr={ 2 }>
+    <Grid templateColumns="repeat(2, minmax(0, 1fr))" gap={ 2 }>
+      <Flex alignItems="center" mr={ 2 } minWidth={ 0 }>
         { icon }
         <Box
           as={ shouldHighlightHash ? 'mark' : 'span' }
@@ -84,12 +90,16 @@ const SearchBarSuggestAddress = ({ data, isMobile, searchTerm }: Props) => {
           overflow="hidden"
           whiteSpace="nowrap"
           fontWeight={ 700 }
+          minWidth={ 0 }
         >
           { addressEl }
         </Box>
       </Flex>
-      { nameEl }
-    </Flex>
+      <Flex alignItems="center" justifyContent="space-between" gap={ 2 } minWidth={ 0 }>
+        { nameEl }
+        { tagEl }
+      </Flex>
+    </Grid>
   );
 };
 

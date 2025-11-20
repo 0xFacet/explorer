@@ -1,16 +1,23 @@
 import { chakra } from '@chakra-ui/react';
-import _omit from 'lodash/omit';
 import React from 'react';
 
-import { route } from 'nextjs-routes';
+import { route } from 'nextjs/routes';
 
+import { useMultichainContext } from 'lib/contexts/multichain';
+import getChainTooltipText from 'lib/multichain/getChainTooltipText';
+import getIconUrl from 'lib/multichain/getIconUrl';
 import * as EntityBase from 'ui/shared/entities/base/components';
+
+import { distributeEntityProps } from '../base/utils';
 
 type LinkProps = EntityBase.LinkBaseProps & Partial<Pick<EntityProps, 'hash' | 'number'>>;
 
 const Link = chakra((props: LinkProps) => {
   const heightOrHash = props.hash ?? String(props.number);
-  const defaultHref = route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: heightOrHash } });
+  const defaultHref = route(
+    { pathname: '/block/[height_or_hash]', query: { height_or_hash: heightOrHash } },
+    props.chain ? { chain: props.chain } : undefined,
+  );
 
   return (
     <EntityBase.Link
@@ -22,15 +29,13 @@ const Link = chakra((props: LinkProps) => {
   );
 });
 
-type IconProps = Omit<EntityBase.IconBaseProps, 'name'> & {
-  name?: EntityBase.IconBaseProps['name'];
-};
-
-const Icon = (props: IconProps) => {
+const Icon = (props: EntityBase.IconBaseProps) => {
   return (
     <EntityBase.Icon
       { ...props }
-      name={ props.name ?? 'block_slim' }
+      name={ 'name' in props ? props.name : 'block_slim' }
+      shield={ props.shield ?? (props.chain ? { src: getIconUrl(props.chain) } : undefined) }
+      hint={ props.chain ? getChainTooltipText(props.chain, 'Block on ') : undefined }
     />
   );
 };
@@ -50,20 +55,20 @@ const Content = chakra((props: ContentProps) => {
 const Container = EntityBase.Container;
 
 export interface EntityProps extends EntityBase.EntityBaseProps {
-  number: number;
+  number: number | string;
   hash?: string;
 }
 
 const BlockEntity = (props: EntityProps) => {
-  const linkProps = _omit(props, [ 'className' ]);
-  const partsProps = _omit(props, [ 'className', 'onClick' ]);
+  const multichainContext = useMultichainContext();
+  const partsProps = distributeEntityProps(props, multichainContext);
+
+  const content = <Content { ...partsProps.content }/>;
 
   return (
-    <Container className={ props.className }>
-      <Icon { ...partsProps }/>
-      <Link { ...linkProps }>
-        <Content { ...partsProps }/>
-      </Link>
+    <Container { ...partsProps.container }>
+      <Icon { ...partsProps.icon }/>
+      { props.noLink ? content : <Link { ...partsProps.link }>{ content }</Link> }
     </Container>
   );
 };

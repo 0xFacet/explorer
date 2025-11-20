@@ -1,22 +1,20 @@
-import { useUpdateEffect } from '@chakra-ui/react';
+import { createListCollection } from '@chakra-ui/react';
 import React from 'react';
-import type { ControllerRenderProps } from 'react-hook-form';
-import { useFormContext, Controller } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 
 import type { FormFields } from '../types';
-import type { Option } from 'ui/shared/FancySelect/types';
 
-import useIsMobile from 'lib/hooks/useIsMobile';
-import FancySelect from 'ui/shared/FancySelect/FancySelect';
+import type { SelectOption } from 'toolkit/chakra/select';
+import { FormFieldSelect } from 'toolkit/components/forms/fields/FormFieldSelect';
+import { useUpdateEffect } from 'toolkit/hooks/useUpdateEffect';
 
 import ContractVerificationFormRow from '../ContractVerificationFormRow';
 
 const SOURCIFY_ERROR_REGEXP = /\(([^()]*)\)/;
 
 const ContractVerificationFieldContractIndex = () => {
-  const [ options, setOptions ] = React.useState<Array<Option>>([]);
-  const { formState, control, watch } = useFormContext<FormFields>();
-  const isMobile = useIsMobile();
+  const [ options, setOptions ] = React.useState<Array<SelectOption>>([]);
+  const { formState, watch } = useFormContext<FormFields>();
 
   const sources = watch('sources');
   const sourcesError = 'sources' in formState.errors ? formState.errors.sources?.message : undefined;
@@ -40,22 +38,9 @@ const ContractVerificationFieldContractIndex = () => {
     setOptions([]);
   }, [ sources ]);
 
-  const renderControl = React.useCallback(({ field }: {field: ControllerRenderProps<FormFields, 'contract_index'>}) => {
-    const error = 'contract_index' in formState.errors ? formState.errors.contract_index : undefined;
-
-    return (
-      <FancySelect
-        { ...field }
-        options={ options }
-        size={ isMobile ? 'md' : 'lg' }
-        placeholder="Contract name"
-        isDisabled={ formState.isSubmitting }
-        error={ error }
-        isRequired
-        isAsync={ false }
-      />
-    );
-  }, [ formState.errors, formState.isSubmitting, isMobile, options ]);
+  const collection = React.useMemo(() => {
+    return createListCollection({ items: options });
+  }, [ options ]);
 
   if (options.length === 0) {
     return null;
@@ -63,11 +48,11 @@ const ContractVerificationFieldContractIndex = () => {
 
   return (
     <ContractVerificationFormRow>
-      <Controller
+      <FormFieldSelect<FormFields, 'contract_index'>
         name="contract_index"
-        control={ control }
-        render={ renderControl }
-        rules={{ required: true }}
+        placeholder="Contract name"
+        collection={ collection }
+        required
       />
     </ContractVerificationFormRow>
   );

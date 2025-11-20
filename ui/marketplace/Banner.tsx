@@ -1,7 +1,7 @@
 import type { MouseEvent } from 'react';
 import React from 'react';
 
-import type { MarketplaceAppPreview } from 'types/client/marketplace';
+import type { MarketplaceApp } from 'types/client/marketplace';
 
 import config from 'configs/app';
 import { apps as appsMock } from 'mocks/apps/apps';
@@ -12,13 +12,13 @@ import IframeBanner from './Banner/IframeBanner';
 const feature = config.features.marketplace;
 
 type BannerProps = {
-  apps: Array<MarketplaceAppPreview> | undefined;
+  apps: Array<MarketplaceApp> | undefined;
   favoriteApps: Array<string>;
   isLoading: boolean;
   onInfoClick: (id: string) => void;
   onFavoriteClick: (id: string, isFavorite: boolean, source: 'Banner') => void;
   onAppClick: (event: MouseEvent, id: string) => void;
-}
+};
 
 const Banner = ({ apps = [], favoriteApps, isLoading, onInfoClick, onFavoriteClick, onAppClick }: BannerProps) => {
   if (!feature.isEnabled) {

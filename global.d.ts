@@ -1,10 +1,11 @@
+import type { MultichainConfig } from 'types/multichain';
 import type { WalletProvider } from 'types/web3';
 
 type CPreferences = {
   zone: string;
   width: string;
   height: string;
-}
+};
 
 declare global {
   export interface Window {
@@ -19,6 +20,7 @@ declare global {
     };
     abkw: string;
     __envs: Record<string, string>;
+    __multichainConfig: MultichainConfig;
   }
 
   namespace NodeJS {

@@ -1,9 +1,10 @@
-import type { SolidityscanReport, SolidityscanReportSeverityDistribution } from 'types/api/contract';
-
-export type MarketplaceAppPreview = {
+export type MarketplaceAppBase = {
   id: string;
+  author: string;
+  site?: string;
   external?: boolean;
   title: string;
+  description: string;
   logo: string;
   logoDarkMode?: string;
   shortDescription: string;
@@ -11,61 +12,24 @@ export type MarketplaceAppPreview = {
   url: string;
   internalWallet?: boolean;
   priority?: number;
-}
+};
+
+export type MarketplaceAppRating = {
+  rating?: number;
+  ratingsTotalCount?: number;
+  userRating?: number;
+};
 
 export type MarketplaceAppSocialInfo = {
   twitter?: string;
   telegram?: string;
   github?: string | Array<string>;
   discord?: string;
-}
+};
 
-export type MarketplaceAppOverview = MarketplaceAppPreview & MarketplaceAppSocialInfo & {
-  author: string;
-  description: string;
-  site?: string;
-}
-
-export type AppRating = {
-  recordId: string;
-  value: number | undefined;
-}
-
-export type MarketplaceAppWithSecurityReport = MarketplaceAppOverview & {
-  securityReport?: MarketplaceAppSecurityReport;
-  rating?: AppRating;
-}
+export type MarketplaceApp = MarketplaceAppBase & MarketplaceAppSocialInfo & MarketplaceAppRating;
 
 export enum MarketplaceCategory {
   ALL = 'All',
   FAVORITES = 'Favorites',
-}
-
-export enum ContractListTypes {
-  ANALYZED = 'Analyzed',
-  ALL = 'All',
-  VERIFIED = 'Verified',
-}
-
-export type MarketplaceAppSecurityReport = {
-  overallInfo: {
-    verifiedNumber: number;
-    totalContractsNumber: number;
-    solidityScanContractsNumber: number;
-    securityScore: number;
-    totalIssues?: number;
-    issueSeverityDistribution: SolidityscanReportSeverityDistribution;
-  };
-  contractsData: Array<{
-    address: string;
-    isVerified: boolean;
-    solidityScanReport?: SolidityscanReport['scan_report'] | null;
-  }>;
-}
-
-export type MarketplaceAppSecurityReportRaw = {
-  appName: string;
-  chainsData: {
-    [chainId: string]: MarketplaceAppSecurityReport;
-  };
 }

@@ -9,57 +9,82 @@ declare module "nextjs-routes" {
     | StaticRoute<"/404">
     | StaticRoute<"/account/api-key">
     | StaticRoute<"/account/custom-abi">
+    | StaticRoute<"/account/merits">
     | StaticRoute<"/account/tag-address">
     | StaticRoute<"/account/verified-addresses">
     | StaticRoute<"/account/watchlist">
     | StaticRoute<"/accounts">
+    | DynamicRoute<"/accounts/label/[slug]", { "slug": string }>
     | DynamicRoute<"/address/[hash]/contract-verification", { "hash": string }>
     | DynamicRoute<"/address/[hash]", { "hash": string }>
+    | StaticRoute<"/advanced-filter">
     | StaticRoute<"/api/config">
     | StaticRoute<"/api/csrf">
     | StaticRoute<"/api/healthz">
     | StaticRoute<"/api/log">
     | StaticRoute<"/api/media-type">
     | StaticRoute<"/api/metrics">
+    | StaticRoute<"/api/monitoring/invalid-api-schema">
     | StaticRoute<"/api/proxy">
-    | StaticRoute<"/api/sprite">
     | StaticRoute<"/api-docs">
     | DynamicRoute<"/apps/[id]", { "id": string }>
     | StaticRoute<"/apps">
-    | StaticRoute<"/auth/auth0">
     | StaticRoute<"/auth/profile">
-    | StaticRoute<"/auth/unverified-email">
     | DynamicRoute<"/batches/[number]", { "number": string }>
+    | DynamicRoute<"/batches/celestia/[height]/[commitment]", { "height": string; "commitment": string }>
     | StaticRoute<"/batches">
     | DynamicRoute<"/blobs/[hash]", { "hash": string }>
     | DynamicRoute<"/block/[height_or_hash]", { "height_or_hash": string }>
     | DynamicRoute<"/block/countdown/[height]", { "height": string }>
     | StaticRoute<"/block/countdown">
     | StaticRoute<"/blocks">
+    | DynamicRoute<"/cc/tx/[hash]", { "hash": string }>
+    | DynamicRoute<"/chain/[chain-slug]/accounts/label/[slug]", { "chain-slug": string; "slug": string }>
+    | DynamicRoute<"/chain/[chain-slug]/advanced-filter", { "chain-slug": string }>
+    | DynamicRoute<"/chain/[chain-slug]/block/[height_or_hash]", { "chain-slug": string; "height_or_hash": string }>
+    | DynamicRoute<"/chain/[chain-slug]/block/countdown/[height]", { "chain-slug": string; "height": string }>
+    | DynamicRoute<"/chain/[chain-slug]/block/countdown", { "chain-slug": string }>
+    | DynamicRoute<"/chain/[chain-slug]/csv-export", { "chain-slug": string }>
+    | DynamicRoute<"/chain/[chain-slug]/op/[hash]", { "chain-slug": string; "hash": string }>
+    | DynamicRoute<"/chain/[chain-slug]/token/[hash]", { "chain-slug": string; "hash": string }>
+    | DynamicRoute<"/chain/[chain-slug]/token/[hash]/instance/[id]", { "chain-slug": string; "hash": string; "id": string }>
+    | DynamicRoute<"/chain/[chain-slug]/tx/[hash]", { "chain-slug": string; "hash": string }>
+    | StaticRoute<"/chakra">
     | StaticRoute<"/contract-verification">
     | StaticRoute<"/csv-export">
     | StaticRoute<"/deposits">
     | StaticRoute<"/dispute-games">
+    | DynamicRoute<"/epochs/[number]", { "number": string }>
+    | StaticRoute<"/epochs">
     | StaticRoute<"/gas-tracker">
-    | StaticRoute<"/graphiql">
     | StaticRoute<"/">
+    | StaticRoute<"/internal-txs">
+    | StaticRoute<"/interop-messages">
     | StaticRoute<"/login">
     | StaticRoute<"/mud-worlds">
     | DynamicRoute<"/name-domains/[name]", { "name": string }>
     | StaticRoute<"/name-domains">
     | DynamicRoute<"/op/[hash]", { "hash": string }>
+    | DynamicRoute<"/operation/[id]", { "id": string }>
+    | StaticRoute<"/operations">
     | StaticRoute<"/ops">
     | StaticRoute<"/output-roots">
+    | DynamicRoute<"/pools/[hash]", { "hash": string }>
+    | StaticRoute<"/pools">
     | StaticRoute<"/public-tags/submit">
     | StaticRoute<"/search-results">
     | StaticRoute<"/sprite">
+    | DynamicRoute<"/stats/[id]", { "id": string }>
     | StaticRoute<"/stats">
     | DynamicRoute<"/token/[hash]", { "hash": string }>
     | DynamicRoute<"/token/[hash]/instance/[id]", { "hash": string; "id": string }>
+    | StaticRoute<"/token-transfers">
     | StaticRoute<"/tokens">
     | DynamicRoute<"/tx/[hash]", { "hash": string }>
+    | StaticRoute<"/txn-withdrawals">
     | StaticRoute<"/txs">
     | DynamicRoute<"/txs/kettle/[hash]", { "hash": string }>
+    | DynamicRoute<"/validators/[id]", { "id": string }>
     | StaticRoute<"/validators">
     | StaticRoute<"/verified-contracts">
     | StaticRoute<"/visualize/sol2uml">
